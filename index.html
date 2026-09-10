@@ -249,7 +249,7 @@ nav.links a:hover::after{
   opacity:1;
 
   transition:
-    background-image 1.2s ease-in-out,
+    background-image 0.75s ease-in-out,
     transform 8s ease;
 }
 
@@ -270,7 +270,7 @@ nav.links a:hover::after{
 
   opacity:0;
 
-  transition:opacity 1.5s ease-in-out;
+  transition:opacity 0.75s ease-in-out;
 }
 
 
@@ -559,8 +559,8 @@ nav.links a:hover::after{
   transform:scale(1.03);
 
   transition:
-    opacity 1.4s ease-in-out,
-    transform 7s ease;
+    opacity 0.75s ease-in-out,
+    transform 7s cubic-bezier(.16,.84,.44,1);
 }
 
 .hero-gallery-image img.active{
@@ -1518,6 +1518,41 @@ footer{
   }
 }
 
+
+/* Gallery pulita: nessuna barra/etichetta sovrapposta. */
+.gallery-label,
+.gallery-dots{
+  display:none !important;
+}
+
+
+/* Rifiniture UI */
+::selection{
+  background:rgba(94,203,255,0.24);
+  color:var(--text);
+}
+
+.hero-gallery{
+  box-shadow:
+    0 24px 80px rgba(0,0,0,0.48),
+    0 0 0 1px rgba(94,203,255,0.04);
+}
+
+.hero-gallery-image{
+  isolation:isolate;
+}
+
+.hero-gallery-image::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  z-index:2;
+  pointer-events:none;
+  background:
+    linear-gradient(90deg, rgba(3,7,16,0.22), rgba(3,7,16,0.03) 48%, rgba(3,7,16,0.16)),
+    linear-gradient(180deg, rgba(3,7,16,0.02), rgba(3,7,16,0.08) 55%, rgba(3,7,16,0.42));
+}
+
 </style>
 </head>
 
@@ -1760,56 +1795,7 @@ footer{
           class="gallery-photo"
           alt="NightDrive Logistics foto 5"
         >
-
-
-        <span class="gallery-label">
-          NIGHTDRIVE LOGISTICS
-        </span>
-
-
-        <div
-          class="gallery-dots"
-          id="galleryDots"
-        >
-
-          <button
-            class="gallery-dot active"
-            type="button"
-            aria-label="Foto 1"
-            data-slide="0"
-          ></button>
-
-          <button
-            class="gallery-dot"
-            type="button"
-            aria-label="Foto 2"
-            data-slide="1"
-          ></button>
-
-          <button
-            class="gallery-dot"
-            type="button"
-            aria-label="Foto 3"
-            data-slide="2"
-          ></button>
-
-          <button
-            class="gallery-dot"
-            type="button"
-            aria-label="Foto 4"
-            data-slide="3"
-          ></button>
-
-          <button
-            class="gallery-dot"
-            type="button"
-            aria-label="Foto 5"
-            data-slide="4"
-          ></button>
-
-        </div>
-
-      </div>
+</div>
 
     </div>
 
@@ -1839,7 +1825,7 @@ footer{
         </span>
 
         <h2>
-          Una community costruita per chi ama la strada di notte.
+          Una VTC costruita per chi vive la strada e il lavoro di squadra.
         </h2>
 
       </div>
@@ -1955,7 +1941,7 @@ footer{
         </span>
 
         <h2>
-          Tutto quello che serve per guidare in squadra, ogni notte.
+          Gli strumenti e i valori per vivere ogni convoglio in squadra.
         </h2>
 
       </div>
@@ -2190,7 +2176,7 @@ footer{
         </span>
 
         <h2>
-          Due mappe, un solo convoglio.
+          Due simulatori, una sola squadra.
         </h2>
 
       </div>
@@ -2463,7 +2449,7 @@ footer{
         </span>
 
         <h2>
-          Il team che tiene in moto NightDrive Logistics.
+          Il team che coordina e sviluppa NightDrive Logistics.
         </h2>
 
       </div>
@@ -2607,7 +2593,7 @@ footer{
     </span>
 
     <h2>
-      Pronto a guidare con noi?
+      Pronto a entrare in squadra?
     </h2>
 
 
@@ -2923,7 +2909,7 @@ footer{
 
   <div class="footer-fine">
 
-    © NightDrive Logistic™. All rights reserved. 2026.
+    © NightDrive Logistics™. All rights reserved. 2026.
     <br>
 
     Powered by TruckersMP
@@ -2939,12 +2925,7 @@ footer{
 ====================================================== -->
 
 <script>
-
 document.addEventListener("DOMContentLoaded", function(){
-
-  /*
-   * Tutte le foto presenti nella cartella assets
-   */
 
   const photos = [
     "assets/foto1.jpg",
@@ -2954,237 +2935,66 @@ document.addEventListener("DOMContentLoaded", function(){
     "assets/foto5.jpg"
   ];
 
-
-  /*
-   * Elementi dello slideshow
-   */
-
-  const galleryPhotos =
-    document.querySelectorAll(".gallery-photo");
-
-  const galleryDots =
-    document.querySelectorAll(".gallery-dot");
-
-  const heroBg =
-    document.getElementById("heroBg");
-
+  const galleryPhotos = document.querySelectorAll(".gallery-photo");
+  const heroBg = document.getElementById("heroBg");
+  const gallery = document.querySelector(".hero-gallery");
 
   let currentSlide = 0;
-
-  let timer;
-
-
-  /*
-   * Pre-caricamento immagini
-   * così il cambio è più fluido.
-   */
-
-  photos.forEach(function(photo){
-
-    const image = new Image();
-
-    image.src = photo;
-
-  });
-
-
-  /*
-   * Aggiorna slideshow
-   */
-
-  function showSlide(index){
-
-    currentSlide = index;
-
-
-    /*
-     * FOTO SOTTO LE STATISTICHE
-     */
-
-    galleryPhotos.forEach(function(photo, i){
-
-      photo.classList.toggle(
-        "active",
-        i === index
-      );
-
-    });
-
-
-    /*
-     * Indicatori
-     */
-
-    galleryDots.forEach(function(dot, i){
-
-      dot.classList.toggle(
-        "active",
-        i === index
-      );
-
-    });
-
-
-    /*
-     * CAMBIO DELLO SFONDO HERO
-     */
-
-    heroBg.style.backgroundImage =
-      "url('" + photos[index] + "')";
-
-
-    /*
-     * Piccolo movimento cinematico
-     */
-
-    heroBg.style.animation = "none";
-
-    void heroBg.offsetWidth;
-
-    heroBg.style.animation =
-      "imageZoom 7s ease forwards";
-
-  }
-
-
-  /*
-   * Avanzamento automatico
-   */
-
-  function nextSlide(){
-
-    let next =
-      (currentSlide + 1) % photos.length;
-
-    showSlide(next);
-
-  }
-
-
-  /*
-   * Avvia slideshow
-   */
-
-  function startSlider(){
-
-    clearInterval(timer);
-
-    timer = setInterval(
-      nextSlide,
-      5000
-    );
-
-  }
-
-
-  /*
-   * Click sugli indicatori
-   */
-
-  galleryDots.forEach(function(dot){
-
-    dot.addEventListener(
-      "click",
-      function(){
-
-        const index =
-          parseInt(
-            this.dataset.slide,
-            10
-          );
-
-        showSlide(index);
-
-        startSlider();
-
-      }
-    );
-
-  });
-
-
-  /*
-   * Touch / swipe su telefono
-   */
-
+  let timer = null;
   let touchStartX = 0;
 
-  let touchEndX = 0;
+  /* Pre-caricamento: il cambio resta fluido anche con immagini pesanti. */
+  photos.forEach(function(photo){
+    const image = new Image();
+    image.src = photo;
+  });
 
+  function showSlide(index){
+    currentSlide = (index + photos.length) % photos.length;
 
-  const gallery =
-    document.querySelector(".hero-gallery");
+    galleryPhotos.forEach(function(photo, i){
+      photo.classList.toggle("active", i === currentSlide);
+    });
 
+    heroBg.style.backgroundImage = "url('" + photos[currentSlide] + "')";
 
-  gallery.addEventListener(
-    "touchstart",
-    function(event){
+    heroBg.style.animation = "none";
+    void heroBg.offsetWidth;
+    heroBg.style.animation = "imageZoom 7s ease forwards";
+  }
 
-      touchStartX =
-        event.changedTouches[0].screenX;
+  function nextSlide(){
+    showSlide(currentSlide + 1);
+  }
 
-    },
-    {passive:true}
-  );
+  function previousSlide(){
+    showSlide(currentSlide - 1);
+  }
 
+  function startSlider(){
+    clearInterval(timer);
+    timer = setInterval(nextSlide, 5000);
+  }
 
-  gallery.addEventListener(
-    "touchend",
-    function(event){
+  gallery.addEventListener("touchstart", function(event){
+    touchStartX = event.changedTouches[0].screenX;
+  }, {passive:true});
 
-      touchEndX =
-        event.changedTouches[0].screenX;
+  gallery.addEventListener("touchend", function(event){
+    const touchEndX = event.changedTouches[0].screenX;
+    const difference = touchStartX - touchEndX;
 
+    if(Math.abs(difference) < 50) return;
 
-      const difference =
-        touchStartX - touchEndX;
-
-
-      if(Math.abs(difference) < 50){
-        return;
-      }
-
-
-      if(difference > 0){
-
-        nextSlide();
-
-      }else{
-
-        let previous =
-          (currentSlide - 1 + photos.length)
-          % photos.length;
-
-        showSlide(previous);
-
-      }
-
-
-      startSlider();
-
-    },
-    {passive:true}
-  );
-
-
-  /*
-   * Prima foto
-   */
+    difference > 0 ? nextSlide() : previousSlide();
+    startSlider();
+  }, {passive:true});
 
   showSlide(0);
-
-
-  /*
-   * Parte automaticamente
-   */
-
   startSlider();
 
-
 });
-
 </script>
-
 
 </body>
 </html>

@@ -234,45 +234,38 @@ nav.links a:hover::after{
 }
 
 
-/* FOTO SLIDESHOW DI SFONDO */
+/* FOTO SLIDESHOW DI SFONDO
+   Due layer reali: la foto successiva viene dissolta sopra quella corrente
+   con una transizione esatta di 0.75s. */
 
 .hero-bg{
   position:absolute;
-  inset:0;
+  inset:-1.5%;
+  z-index:0;
 
   background-image:url('assets/foto1.jpg');
   background-size:cover;
   background-position:center;
 
-  transform:scale(1.035);
-
   opacity:1;
-
-  transition:
-    background-image 0.75s ease-in-out,
-    transform 8s ease;
+  transform:scale(1.035);
+  transition:opacity 0.75s ease-in-out, transform 8s ease;
+  will-change:opacity, transform;
+  pointer-events:none;
 }
 
-
-/*
-   Secondo layer utilizzato dallo script
-   per ottenere una dissolvenza vera.
-*/
-
-.hero-bg::after{
-  content:'';
-  position:absolute;
-  inset:0;
-
-  background-image:url('assets/foto2.jpg');
-  background-size:cover;
-  background-position:center;
-
+.hero-bg-next{
   opacity:0;
-
-  transition:opacity 0.75s ease-in-out;
+  transition:opacity 0.75s ease-in-out, transform 8s ease;
 }
 
+.hero-bg.is-visible{
+  opacity:1;
+}
+
+.hero-bg.is-hidden{
+  opacity:0;
+}
 
 /* overlay cinematografico */
 
@@ -297,6 +290,8 @@ nav.links a:hover::after{
       rgba(4,7,15,0.12) 72%,
       rgba(4,7,15,0.30) 100%
     );
+
+  z-index:1;
 }
 
 
@@ -516,143 +511,9 @@ nav.links a:hover::after{
    HERO PHOTO SLIDER
 ========================================================= */
 
-.hero-gallery{
-  position:relative;
-
-  width:100%;
-
-  margin-top:32px;
-
-  border:1px solid rgba(76,115,184,0.45);
-
-  background:#050810;
-
-  overflow:hidden;
-
-  box-shadow:
-    0 20px 70px rgba(0,0,0,0.45);
-}
-
-.hero-gallery-image{
-  position:relative;
-
-  width:100%;
-  height:190px;
-
-  overflow:hidden;
-
-  background:#050810;
-}
-
-.hero-gallery-image img{
-  position:absolute;
-  inset:0;
-
-  width:100%;
-  height:100%;
-
-  object-fit:cover;
-  object-position:center;
-
-  opacity:0;
-
-  transform:scale(1.03);
-
-  transition:
-    opacity 0.75s ease-in-out,
-    transform 7s cubic-bezier(.16,.84,.44,1);
-}
-
-.hero-gallery-image img.active{
-  opacity:1;
-  transform:scale(1);
-}
-
-.hero-gallery-image::after{
-  content:'';
-
-  position:absolute;
-  inset:0;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(3,7,16,0.05),
-      rgba(3,7,16,0.40)
-    );
-
-  pointer-events:none;
-}
-
-
 /* label sulla foto */
 
-.gallery-label{
-  position:absolute;
-
-  left:20px;
-  bottom:18px;
-
-  z-index:3;
-
-  font-size:0.68rem;
-  font-weight:700;
-
-  letter-spacing:0.18em;
-
-  color:#fff;
-
-  text-transform:uppercase;
-
-  padding:7px 12px;
-
-  background:rgba(3,7,16,0.65);
-
-  border-left:2px solid var(--cyan);
-
-  backdrop-filter:blur(8px);
-}
-
-
 /* indicatori */
-
-.gallery-dots{
-  position:absolute;
-
-  right:20px;
-  bottom:20px;
-
-  z-index:5;
-
-  display:flex;
-  gap:7px;
-}
-
-.gallery-dot{
-  width:28px;
-  height:3px;
-
-  border:0;
-
-  padding:0;
-
-  cursor:pointer;
-
-  background:rgba(255,255,255,0.25);
-
-  transition:
-    background 0.3s ease,
-    width 0.3s ease;
-}
-
-.gallery-dot.active{
-  width:42px;
-  background:var(--cyan);
-
-  box-shadow:
-    0 0 10px rgba(94,203,255,0.55);
-}
-
 
 /* =========================================================
    SECTION HEADINGS
@@ -1382,11 +1243,7 @@ footer{
     padding-top:100px;
   }
 
-  .hero-gallery-image{
-    height:220px;
   }
-
-}
 
 
 @media (max-width:620px){
@@ -1452,33 +1309,6 @@ footer{
     font-size:1.25rem;
   }
 
-  .hero-gallery{
-    margin-top:26px;
-  }
-
-  .hero-gallery-image{
-    height:180px;
-  }
-
-  .gallery-label{
-    left:12px;
-    bottom:12px;
-    font-size:0.58rem;
-  }
-
-  .gallery-dots{
-    right:12px;
-    bottom:14px;
-  }
-
-  .gallery-dot{
-    width:18px;
-  }
-
-  .gallery-dot.active{
-    width:28px;
-  }
-
   .team-grid{
     grid-template-columns:1fr;
   }
@@ -1520,37 +1350,10 @@ footer{
 
 
 /* Gallery pulita: nessuna barra/etichetta sovrapposta. */
-.gallery-label,
-.gallery-dots{
-  display:none !important;
-}
-
-
 /* Rifiniture UI */
 ::selection{
   background:rgba(94,203,255,0.24);
   color:var(--text);
-}
-
-.hero-gallery{
-  box-shadow:
-    0 24px 80px rgba(0,0,0,0.48),
-    0 0 0 1px rgba(94,203,255,0.04);
-}
-
-.hero-gallery-image{
-  isolation:isolate;
-}
-
-.hero-gallery-image::before{
-  content:'';
-  position:absolute;
-  inset:0;
-  z-index:2;
-  pointer-events:none;
-  background:
-    linear-gradient(90deg, rgba(3,7,16,0.22), rgba(3,7,16,0.03) 48%, rgba(3,7,16,0.16)),
-    linear-gradient(180deg, rgba(3,7,16,0.02), rgba(3,7,16,0.08) 55%, rgba(3,7,16,0.42));
 }
 
 </style>
@@ -1641,10 +1444,8 @@ footer{
 
   <!-- SFONDO SLIDESHOW -->
 
-  <div
-    class="hero-bg"
-    id="heroBg"
-  ></div>
+  <div class="hero-bg" id="heroBg"></div>
+  <div class="hero-bg hero-bg-next" id="heroBgNext"></div>
 
 
   <!-- OVERLAY -->
@@ -1755,51 +1556,7 @@ footer{
       </div>
 
     </div>
-
-
-    <!-- ==================================================
-         FOTO SOTTO IL RIQUADRO
-    ================================================== -->
-
-    <div class="hero-gallery">
-
-      <div class="hero-gallery-image">
-
-
-        <img
-          src="assets/foto1.jpg"
-          class="gallery-photo active"
-          alt="NightDrive Logistics foto 1"
-        >
-
-        <img
-          src="assets/foto2.jpg"
-          class="gallery-photo"
-          alt="NightDrive Logistics foto 2"
-        >
-
-        <img
-          src="assets/foto3.jpg"
-          class="gallery-photo"
-          alt="NightDrive Logistics foto 3"
-        >
-
-        <img
-          src="assets/foto4.jpg"
-          class="gallery-photo"
-          alt="NightDrive Logistics foto 4"
-        >
-
-        <img
-          src="assets/foto5.jpg"
-          class="gallery-photo"
-          alt="NightDrive Logistics foto 5"
-        >
-</div>
-
     </div>
-
-  </div>
 
 </section>
 
@@ -2935,63 +2692,43 @@ document.addEventListener("DOMContentLoaded", function(){
     "assets/foto5.jpg"
   ];
 
-  const galleryPhotos = document.querySelectorAll(".gallery-photo");
-  const heroBg = document.getElementById("heroBg");
-  const gallery = document.querySelector(".hero-gallery");
+  const layers = [
+    document.getElementById("heroBg"),
+    document.getElementById("heroBgNext")
+  ];
 
-  let currentSlide = 0;
-  let timer = null;
-  let touchStartX = 0;
+  let currentPhoto = 0;
+  let activeLayer = 0;
 
-  /* Pre-caricamento: il cambio resta fluido anche con immagini pesanti. */
-  photos.forEach(function(photo){
+  /* Pre-caricamento delle immagini per evitare flash durante il cambio. */
+  photos.forEach(function(src){
     const image = new Image();
-    image.src = photo;
+    image.src = src;
   });
 
-  function showSlide(index){
-    currentSlide = (index + photos.length) % photos.length;
+  function changeBackground(){
+    const nextPhoto = (currentPhoto + 1) % photos.length;
+    const nextLayer = activeLayer === 0 ? 1 : 0;
 
-    galleryPhotos.forEach(function(photo, i){
-      photo.classList.toggle("active", i === currentSlide);
-    });
+    layers[nextLayer].style.backgroundImage =
+      "url('" + photos[nextPhoto] + "')";
 
-    heroBg.style.backgroundImage = "url('" + photos[currentSlide] + "')";
+    /*
+     * La dissolvenza avviene tra due layer realmente sovrapposti.
+     * Durata CSS: 0.75s.
+     */
+    layers[nextLayer].style.opacity = "1";
+    layers[activeLayer].style.opacity = "0";
 
-    heroBg.style.animation = "none";
-    void heroBg.offsetWidth;
-    heroBg.style.animation = "imageZoom 7s ease forwards";
+    activeLayer = nextLayer;
+    currentPhoto = nextPhoto;
   }
 
-  function nextSlide(){
-    showSlide(currentSlide + 1);
-  }
+  /* Prima immagine immediata, poi cambio ogni 5 secondi. */
+  layers[0].style.backgroundImage = "url('" + photos[0] + "')";
+  layers[1].style.backgroundImage = "url('" + photos[1] + "')";
 
-  function previousSlide(){
-    showSlide(currentSlide - 1);
-  }
-
-  function startSlider(){
-    clearInterval(timer);
-    timer = setInterval(nextSlide, 5000);
-  }
-
-  gallery.addEventListener("touchstart", function(event){
-    touchStartX = event.changedTouches[0].screenX;
-  }, {passive:true});
-
-  gallery.addEventListener("touchend", function(event){
-    const touchEndX = event.changedTouches[0].screenX;
-    const difference = touchStartX - touchEndX;
-
-    if(Math.abs(difference) < 50) return;
-
-    difference > 0 ? nextSlide() : previousSlide();
-    startSlider();
-  }, {passive:true});
-
-  showSlide(0);
-  startSlider();
+  setInterval(changeBackground, 5000);
 
 });
 </script>

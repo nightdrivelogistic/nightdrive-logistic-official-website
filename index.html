@@ -234,34 +234,7 @@ nav.links a:hover::after{
 }
 
 
-/* FOTO SLIDESHOW DI SFONDO
-   Due layer reali: la foto successiva viene dissolta sopra quella corrente
-   con una transizione esatta di 0.75s. */
-
-.hero-bg {position:absolute;
-  inset:-1.5%;
-  z-index:0;
-
-  background-image:url('assets/foto1.jpg');
-  background-size:cover;
-  background-position:center;
-
-  opacity:0.30;
-  pointer-events:none;
-}
-
-.hero-bg-next{
-  opacity:0;
-  transition:none;
-}
-
-.hero-bg.is-visible{
-  opacity:1;
-}
-
-.hero-bg.is-hidden{
-  opacity:0;
-}
+/* HERO SLIDESHOW — image layers, instant swap */
 
 /* overlay cinematografico */
 
@@ -1762,6 +1735,58 @@ a.button:active {
   animation: none !important;
 }
 
+
+/* ===== HERO SLIDES: ZERO-FADE, ZERO-JANK ===== */
+.hero-slides {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: #000;
+}
+
+.hero-slide {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 0;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.hero-slide.active {
+  opacity: 0.30;
+  visibility: visible;
+  z-index: 1;
+}
+
+/* Absolutely no transition on the photo swap. */
+.hero-slide,
+.hero-slide.active {
+  transition: none !important;
+  animation: none !important;
+}
+
+
+/* Kill all legacy hero background transition systems. */
+.hero-bg,
+.hero-bg-next,
+.hero-bg.is-visible,
+.hero-bg.is-hidden {
+  display: none !important;
+  transition: none !important;
+  animation: none !important;
+  will-change: auto !important;
+}
+
 </style>
 </head>
 
@@ -1851,7 +1876,13 @@ a.button:active {
 
   <!-- SFONDO SLIDESHOW -->
 
-  <div class="hero-bg" id="heroBg"></div>
+  <div class="hero-slides" aria-hidden="true">
+  <img class="hero-slide active" src="assets/foto1.jpg" alt="" decoding="async" fetchpriority="high">
+  <img class="hero-slide" src="assets/foto2.jpg" alt="" decoding="async">
+  <img class="hero-slide" src="assets/foto3.jpg" alt="" decoding="async">
+  <img class="hero-slide" src="assets/foto4.jpg" alt="" decoding="async">
+  <img class="hero-slide" src="assets/foto5.jpg" alt="" decoding="async">
+</div>
   <div class="hero-bg hero-bg-next" id="heroBgNext"></div>
 
 
@@ -3089,66 +3120,45 @@ a.button:active {
 ====================================================== -->
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-  const photos = [
-    "assets/foto1.jpg",
-    "assets/foto2.jpg",
-    "assets/foto3.jpg",
-    "assets/foto4.jpg",
-    "assets/foto5.jpg"
-  ];
+document.addEventListener("DOMContentLoaded", () => {
+  const slides = Array.from(document.querySelectorAll(".hero-slide"));
+  if (slides.length < 2) return;
 
-  const heroBg = document.getElementById("heroBg");
-  if (!heroBg || !photos.length) return;
+  let current = 0;
+  let timer = null;
 
-  let currentSlide = 0;
-  const cache = new Map();
-
-  /*
-   * Preload + decode EVERY hero image before the slideshow starts.
-   * This removes the hitch caused by downloading/decoding a JPG
-   * exactly when background-image changes.
-   */
-  const preload = photos.map(src => {
-    const img = new Image();
-    img.decoding = "async";
-    img.src = src;
-
-    const ready = typeof img.decode === "function"
-      ? img.decode().catch(() => {})
-      : new Promise(resolve => {
-          if (img.complete) resolve();
-          else img.addEventListener("load", resolve, { once: true });
-        });
-
-    const promise = ready.then(() => img);
-    cache.set(src, promise);
-    return promise;
+  // Browser decodes these <img> layers independently before they are shown.
+  // No background-image replacement, no CSS transition, no mid-swap repaint.
+  const prepare = slides.map(img => {
+    img.loading = "eager";
+    if (img.decode) return img.decode().catch(() => {});
+    return Promise.resolve();
   });
 
-  function showSlide(index) {
-    currentSlide = (index + photos.length) % photos.length;
-    const src = photos[currentSlide];
+  const show = index => {
+    const next = (index + slides.length) % slides.length;
+    if (next === current) return;
 
-    // Image is already decoded, so the visual swap is immediate.
-    const ready = cache.get(src);
-    if (ready) {
-      ready.then(() => {
-        heroBg.style.backgroundImage = `url("${src}")`;
-      });
+    // Instant compositor-friendly class switch.
+    slides[current].classList.remove("active");
+    slides[next].classList.add("active");
+    current = next;
+  };
+
+  Promise.all(prepare).then(() => {
+    timer = window.setInterval(() => show(current + 1), 5000);
+  });
+
+  // Stop the timer when the tab is hidden and resume when visible.
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    } else if (!timer) {
+      timer = window.setInterval(() => show(current + 1), 5000);
     }
-  }
-
-  // Show the first image immediately, then cycle only through decoded images.
-  showSlide(0);
-
-  Promise.all(preload).then(() => {
-    // Re-apply the first image once all images are decoded.
-    showSlide(0);
-
-    setInterval(() => {
-      showSlide(currentSlide + 1);
-    }, 5000);
   });
 });
 </script>

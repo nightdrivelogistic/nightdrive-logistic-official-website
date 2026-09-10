@@ -249,14 +249,14 @@ nav.links a:hover::after{
 
   opacity:0.68;
   transform:scale(1.035);
-  transition:opacity 0.75s ease-in-out, transform 8s ease;
+  transition:opacity 0.38s ease-in-out, transform 12s linear;
   will-change:opacity, transform;
   pointer-events:none;
 }
 
 .hero-bg-next{
   opacity:0;
-  transition:opacity 0.75s ease-in-out, transform 8s ease;
+  transition:opacity 0.38s ease-in-out, transform 12s linear;
 }
 
 .hero-bg.is-visible{
@@ -1372,6 +1372,17 @@ footer{
 .hero-bg::after{
   background-image:var(--next-bg, url('assets/foto1.jpg'));
 }
+.hero-bg.is-fading::after{
+  opacity:1;
+}
+
+
+/* Cross-fade rapido e pulito: 0.38s. */
+.hero-bg::after{
+  background-image:var(--next-bg, url('assets/foto1.jpg'));
+  transition:opacity 0.38s ease-in-out;
+}
+
 .hero-bg.is-fading::after{
   opacity:1;
 }
@@ -2713,44 +2724,62 @@ document.addEventListener("DOMContentLoaded", function(){
   ];
 
   const heroBg = document.getElementById("heroBg");
+
   let currentSlide = 0;
   let timer = null;
+  let fading = false;
 
-  photos.forEach(function(photo){
-    const image = new Image();
-    image.src = photo;
+  /* Pre-caricamento delle immagini. */
+  photos.forEach(function(src){
+    const img = new Image();
+    img.src = src;
   });
 
+  /* Imposta la prima immagine senza animazione. */
+  heroBg.style.backgroundImage = "url('" + photos[0] + "')";
+
   function showSlide(index){
-    currentSlide = (index + photos.length) % photos.length;
+
+    if(fading) return;
+
+    const nextIndex = (index + photos.length) % photos.length;
+    const nextPhoto = photos[nextIndex];
+
+    fading = true;
 
     /*
-     * La nuova immagine viene caricata nel pseudo-layer ::after.
-     * L'aggiunta di .is-fading porta l'opacità da 0 a 1 in 0.75s.
+     * La foto corrente resta nel layer principale.
+     * La nuova foto viene mostrata sopra tramite ::after.
+     * Solo dopo la dissolvenza aggiorniamo il layer principale.
      */
-    heroBg.style.setProperty("--next-bg", "url('" + photos[currentSlide] + "')");
-    heroBg.style.setProperty("background-image", "url('" + photos[currentSlide] + "')");
+    heroBg.style.setProperty(
+      "--next-bg",
+      "url('" + nextPhoto + "')"
+    );
 
-    heroBg.classList.remove("is-fading");
-    void heroBg.offsetWidth;
-    heroBg.classList.add("is-fading");
+    requestAnimationFrame(function(){
+      heroBg.classList.add("is-fading");
+    });
 
     window.setTimeout(function(){
+
+      heroBg.style.backgroundImage =
+        "url('" + nextPhoto + "')";
+
       heroBg.classList.remove("is-fading");
-    }, 750);
+
+      currentSlide = nextIndex;
+      fading = false;
+
+    }, 380);
   }
 
   function nextSlide(){
     showSlide(currentSlide + 1);
   }
 
-  function startSlider(){
-    clearInterval(timer);
-    timer = setInterval(nextSlide, 5000);
-  }
-
-  showSlide(0);
-  startSlider();
+  /* Cambio immagine ogni 5 secondi. */
+  timer = setInterval(nextSlide, 5000);
 
 });
 </script>

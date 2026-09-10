@@ -238,8 +238,7 @@ nav.links a:hover::after{
    Due layer reali: la foto successiva viene dissolta sopra quella corrente
    con una transizione esatta di 0.75s. */
 
-.hero-bg{
-  position:absolute;
+.hero-bg {position:absolute;
   inset:-1.5%;
   z-index:0;
 
@@ -249,7 +248,7 @@ nav.links a:hover::after{
 
   opacity:0.30;
   transform:scale(1.035);
-  transition:opacity 0.38s ease-in-out, transform 12s linear;
+  
   will-change:opacity, transform;
   pointer-events:none;
 }
@@ -1338,12 +1337,7 @@ footer{
    SLIDESHOW FALLBACK
 ========================================================= */
 
-@keyframes imageZoom{
-  from{
-    transform:scale(1.05);
-  }
-
-  to{
+to{
     transform:scale(1);
   }
 }
@@ -1357,8 +1351,7 @@ footer{
 }
 
 
-.hero-bg{
-  opacity:0.30!important;
+.hero-bg {opacity:0.30!important;
 }
 
 
@@ -1536,13 +1529,10 @@ section,
   }
 }
 
-@keyframes imageZoom{
-  from{transform:scale(1.035)}
-  to{transform:scale(1)}
+to{transform:scale(1)}
 }
 
-.hero-bg{
-  animation:imageZoom 7s linear forwards;
+.hero-bg {
 }
 
 .nav-scrolled{
@@ -1562,11 +1552,210 @@ section,
   }
 }
 
+
+/* === PREMIUM SMOOTH MOTION === */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 0;
+}
+
+#top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+
+/* ===== FLUID PREMIUM INTERACTIONS — FINAL OVERRIDES ===== */
+:root {
+  --motion-fast: 180ms;
+  --motion-smooth: 520ms;
+  --motion-slow: 900ms;
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  --ease-spring: cubic-bezier(.22, 1, .36, 1);
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* Soft page progress — restrained, not distracting */
+#scroll-progress {
+  transform-origin: left center;
+  will-change: transform;
+}
+
+/* Reveal system: GPU-friendly, smooth and subtle */
+.reveal,
+.reveal-left,
+.reveal-right,
+[data-reveal] {
+  opacity: 0;
+  will-change: transform, opacity;
+  transition:
+    opacity 800ms var(--ease-out),
+    transform 900ms var(--ease-out);
+}
+
+.reveal {
+  transform: translate3d(0, 34px, 0);
+}
+
+.reveal-left {
+  transform: translate3d(-42px, 0, 0);
+}
+
+.reveal-right {
+  transform: translate3d(42px, 0, 0);
+}
+
+.reveal.is-visible,
+.reveal-left.is-visible,
+.reveal-right.is-visible,
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+/* Cards: elegant lift instead of aggressive movement */
+.game-card,
+.team-card,
+.info-card,
+.card {
+  transform: translate3d(0, 0, 0);
+  transition:
+    transform 500ms var(--ease-spring),
+    box-shadow 500ms var(--ease-out),
+    border-color 400ms var(--ease-out);
+  will-change: transform;
+}
+
+.game-card:hover,
+.team-card:hover,
+.info-card:hover,
+.card:hover {
+  transform: translate3d(0, -7px, 0);
+}
+
+/* Buttons feel responsive without jumping */
+button,
+.btn,
+a.button,
+.nav-link {
+  transition:
+    transform 260ms var(--ease-spring),
+    opacity 220ms ease,
+    box-shadow 400ms var(--ease-out),
+    color 300ms ease,
+    background-color 300ms ease;
+}
+
+button:hover,
+.btn:hover,
+a.button:hover {
+  transform: translate3d(0, -2px, 0);
+}
+
+button:active,
+.btn:active,
+a.button:active {
+  transform: translate3d(0, 1px, 0) scale(.985);
+  transition-duration: 90ms;
+}
+
+/* Nav items: smooth underline */
+.nav-link {
+  position: relative;
+}
+
+.nav-link::after {
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 420ms var(--ease-out);
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+  transform: scaleX(1);
+}
+
+/* Hero content entrance */
+.hero-content,
+.hero h1,
+.hero h2,
+.hero p,
+.hero .btn {
+  animation-timing-function: var(--ease-out) !important;
+}
+
+/* No background fade/zoom — image remains static between slides */
+.hero-bg {
+  animation: none !important;
+  transition: none !important;
+  filter: none !important;
+}
+
+/* Keep slideshow instant: no cross-fade */
+.hero-bg,
+.hero-background,
+.hero-slide {
+  transition: none !important;
+}
+
+/* Gentle floating elements only where already supported */
+.float,
+.floating {
+  animation-timing-function: var(--ease-spring);
+}
+
+/* Focus should be polished and accessible */
+:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+/* Reduced motion: everything becomes immediate */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .reveal,
+  .reveal-left,
+  .reveal-right,
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
 </style>
 </head>
 
 
 <body>
+<div id="top" aria-hidden="true"></div>
 
 
 <!-- ======================================================
@@ -1638,7 +1827,7 @@ section,
 
 
 
-<main id="top">
+<main>
 
 
 <!-- ======================================================
@@ -2997,6 +3186,113 @@ document.addEventListener("DOMContentLoaded", function(){
   });
 
 });
+</script>
+
+
+<script>
+(() => {
+  'use strict';
+
+  /* Exact #top navigation: always lands at y=0 */
+  document.querySelectorAll('a[href="#top"]').forEach(link => {
+    link.addEventListener('click', event => {
+      event.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      history.replaceState(null, '', '#top');
+    }, { passive: false });
+  });
+
+  /* Ultra-smooth reveal observer */
+  const revealTargets = document.querySelectorAll(
+    '.reveal, .reveal-left, .reveal-right, [data-reveal]'
+  );
+
+  if ('IntersectionObserver' in window && revealTargets.length) {
+    const observer = new IntersectionObserver((entries, obs) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+
+        entry.target.classList.add('is-visible');
+        obs.unobserve(entry.target);
+      });
+    }, {
+      threshold: 0.12,
+      rootMargin: '0px 0px -7% 0px'
+    });
+
+    revealTargets.forEach(el => observer.observe(el));
+  } else {
+    revealTargets.forEach(el => el.classList.add('is-visible'));
+  }
+
+  /* Stagger children only when a section becomes visible */
+  document.querySelectorAll(
+    '.games-grid, .team-grid, .cards-grid, .features-grid, .stats-grid'
+  ).forEach(grid => {
+    const children = [...grid.children];
+    children.forEach((child, index) => {
+      child.style.transitionDelay = `${Math.min(index * 70, 420)}ms`;
+    });
+  });
+
+  /* Passive scroll loop: one RAF per frame, no layout thrashing */
+  let ticking = false;
+  const progress = document.querySelector('#scroll-progress');
+
+  const updateScroll = () => {
+    const doc = document.documentElement;
+    const max = Math.max(1, doc.scrollHeight - window.innerHeight);
+    const ratio = Math.min(1, Math.max(0, window.scrollY / max));
+
+    if (progress) {
+      progress.style.transform = `scaleX(${ratio})`;
+    }
+
+    const nav = document.querySelector('nav, .navbar, header');
+    if (nav) {
+      nav.classList.toggle('nav-scrolled', window.scrollY > 24);
+    }
+
+    ticking = false;
+  };
+
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(updateScroll);
+      ticking = true;
+    }
+  }, { passive: true });
+
+  updateScroll();
+
+  /* Refined 3D card tilt: very low amplitude, eased on exit */
+  const finePointer = window.matchMedia('(pointer:fine)').matches;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (finePointer && !reduceMotion) {
+    document.querySelectorAll('.game-card, .team-card, .info-card').forEach(card => {
+      let raf = 0;
+
+      card.addEventListener('pointermove', e => {
+        if (raf) cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(() => {
+          const rect = card.getBoundingClientRect();
+          const x = (e.clientX - rect.left) / rect.width - 0.5;
+          const y = (e.clientY - rect.top) / rect.height - 0.5;
+
+          card.style.transform =
+            `perspective(900px) rotateX(${(-y * 2.8).toFixed(2)}deg) ` +
+            `rotateY(${(x * 3.2).toFixed(2)}deg) translate3d(0,-6px,0)`;
+        });
+      }, { passive: true });
+
+      card.addEventListener('pointerleave', () => {
+        if (raf) cancelAnimationFrame(raf);
+        card.style.transform = '';
+      });
+    });
+  }
+})();
 </script>
 
 </body>

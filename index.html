@@ -247,7 +247,7 @@ nav.links a:hover::after{
   background-size:cover;
   background-position:center;
 
-  opacity:1;
+  opacity:0.68;
   transform:scale(1.035);
   transition:opacity 0.75s ease-in-out, transform 8s ease;
   will-change:opacity, transform;
@@ -1354,6 +1354,26 @@ footer{
 ::selection{
   background:rgba(94,203,255,0.24);
   color:var(--text);
+}
+
+
+.hero-bg{
+  opacity:0.68 !important;
+}
+.hero-bg::after{
+  opacity:0;
+  transition:opacity 0.75s ease-in-out;
+}
+.hero-bg.is-fading::after{
+  opacity:1;
+}
+
+/* Layer della foto successiva: cross-fade reale di 0.75s. */
+.hero-bg::after{
+  background-image:var(--next-bg, url('assets/foto1.jpg'));
+}
+.hero-bg.is-fading::after{
+  opacity:1;
 }
 
 </style>
@@ -2692,43 +2712,45 @@ document.addEventListener("DOMContentLoaded", function(){
     "assets/foto5.jpg"
   ];
 
-  const layers = [
-    document.getElementById("heroBg"),
-    document.getElementById("heroBgNext")
-  ];
+  const heroBg = document.getElementById("heroBg");
+  let currentSlide = 0;
+  let timer = null;
 
-  let currentPhoto = 0;
-  let activeLayer = 0;
-
-  /* Pre-caricamento delle immagini per evitare flash durante il cambio. */
-  photos.forEach(function(src){
+  photos.forEach(function(photo){
     const image = new Image();
-    image.src = src;
+    image.src = photo;
   });
 
-  function changeBackground(){
-    const nextPhoto = (currentPhoto + 1) % photos.length;
-    const nextLayer = activeLayer === 0 ? 1 : 0;
-
-    layers[nextLayer].style.backgroundImage =
-      "url('" + photos[nextPhoto] + "')";
+  function showSlide(index){
+    currentSlide = (index + photos.length) % photos.length;
 
     /*
-     * La dissolvenza avviene tra due layer realmente sovrapposti.
-     * Durata CSS: 0.75s.
+     * La nuova immagine viene caricata nel pseudo-layer ::after.
+     * L'aggiunta di .is-fading porta l'opacità da 0 a 1 in 0.75s.
      */
-    layers[nextLayer].style.opacity = "1";
-    layers[activeLayer].style.opacity = "0";
+    heroBg.style.setProperty("--next-bg", "url('" + photos[currentSlide] + "')");
+    heroBg.style.setProperty("background-image", "url('" + photos[currentSlide] + "')");
 
-    activeLayer = nextLayer;
-    currentPhoto = nextPhoto;
+    heroBg.classList.remove("is-fading");
+    void heroBg.offsetWidth;
+    heroBg.classList.add("is-fading");
+
+    window.setTimeout(function(){
+      heroBg.classList.remove("is-fading");
+    }, 750);
   }
 
-  /* Prima immagine immediata, poi cambio ogni 5 secondi. */
-  layers[0].style.backgroundImage = "url('" + photos[0] + "')";
-  layers[1].style.backgroundImage = "url('" + photos[1] + "')";
+  function nextSlide(){
+    showSlide(currentSlide + 1);
+  }
 
-  setInterval(changeBackground, 5000);
+  function startSlider(){
+    clearInterval(timer);
+    timer = setInterval(nextSlide, 5000);
+  }
+
+  showSlide(0);
+  startSlider();
 
 });
 </script>

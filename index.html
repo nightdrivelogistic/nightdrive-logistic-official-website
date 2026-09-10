@@ -247,15 +247,12 @@ nav.links a:hover::after{
   background-position:center;
 
   opacity:0.30;
-  transform:scale(1.035);
-  
-  will-change:opacity, transform;
   pointer-events:none;
 }
 
 .hero-bg-next{
   opacity:0;
-  transition:opacity 0.38s ease-in-out, transform 12s linear;
+  transition:none;
 }
 
 .hero-bg.is-visible{
@@ -1750,6 +1747,21 @@ a.button:active {
   }
 }
 
+
+/* HERO PERFORMANCE: instant decoded image swaps */
+.hero-bg {
+  transform: none !important;
+  will-change: auto !important;
+  transition: none !important;
+  animation: none !important;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.hero-bg-next {
+  transition: none !important;
+  animation: none !important;
+}
+
 </style>
 </head>
 
@@ -3077,8 +3089,7 @@ a.button:active {
 ====================================================== -->
 
 <script>
-document.addEventListener("DOMContentLoaded", function(){
-
+document.addEventListener("DOMContentLoaded", function () {
   const photos = [
     "assets/foto1.jpg",
     "assets/foto2.jpg",
@@ -3088,105 +3099,62 @@ document.addEventListener("DOMContentLoaded", function(){
   ];
 
   const heroBg = document.getElementById("heroBg");
+  if (!heroBg || !photos.length) return;
+
   let currentSlide = 0;
+  const cache = new Map();
 
-  photos.forEach(function(src){
+  /*
+   * Preload + decode EVERY hero image before the slideshow starts.
+   * This removes the hitch caused by downloading/decoding a JPG
+   * exactly when background-image changes.
+   */
+  const preload = photos.map(src => {
     const img = new Image();
+    img.decoding = "async";
     img.src = src;
+
+    const ready = typeof img.decode === "function"
+      ? img.decode().catch(() => {})
+      : new Promise(resolve => {
+          if (img.complete) resolve();
+          else img.addEventListener("load", resolve, { once: true });
+        });
+
+    const promise = ready.then(() => img);
+    cache.set(src, promise);
+    return promise;
   });
 
-  function showSlide(index){
+  function showSlide(index) {
     currentSlide = (index + photos.length) % photos.length;
-    heroBg.style.backgroundImage = "url('" + photos[currentSlide] + "')";
-  }
+    const src = photos[currentSlide];
 
-  showSlide(0);
-  setInterval(function(){
-    showSlide(currentSlide + 1);
-  }, 5000);
-
-});
-</script>
-
-
-<script>
-document.addEventListener("DOMContentLoaded", function(){
-
-  /* Scroll reveal */
-  const revealItems = document.querySelectorAll(
-    ".section-title, .section-subtitle, .info-card, .game-card, " +
-    ".team-card, .offer-item, .about-card, .reveal, .reveal-left, .reveal-right, .stagger"
-  );
-
-  const revealObserver = new IntersectionObserver(function(entries, observer){
-    entries.forEach(function(entry){
-      if(entry.isIntersecting){
-        entry.target.classList.add("visible");
-        observer.unobserve(entry.target);
-      }
-    });
-  }, {
-    threshold:0.12,
-    rootMargin:"0px 0px -60px 0px"
-  });
-
-  revealItems.forEach(function(item){
-    item.classList.add("reveal");
-    revealObserver.observe(item);
-  });
-
-  /* Barra di avanzamento pagina */
-  function updateScrollProgress(){
-    const max = document.documentElement.scrollHeight - window.innerHeight;
-    const progress = max > 0 ? (window.scrollY / max) * 100 : 0;
-    document.documentElement.style.setProperty(
-      "--scroll-progress",
-      progress + "%"
-    );
-  }
-
-  /* Nav dinamica */
-  const nav = document.querySelector("nav, header");
-  function updateNav(){
-    if(nav){
-      nav.classList.toggle("nav-scrolled", window.scrollY > 30);
+    // Image is already decoded, so the visual swap is immediate.
+    const ready = cache.get(src);
+    if (ready) {
+      ready.then(() => {
+        heroBg.style.backgroundImage = `url("${src}")`;
+      });
     }
-    updateScrollProgress();
   }
 
-  window.addEventListener("scroll", updateNav, {passive:true});
-  updateNav();
+  // Show the first image immediately, then cycle only through decoded images.
+  showSlide(0);
 
-  /* Effetto luce che segue il cursore */
-  window.addEventListener("pointermove", function(event){
-    document.documentElement.style.setProperty(
-      "--cursor-x", event.clientX + "px"
-    );
-    document.documentElement.style.setProperty(
-      "--cursor-y", event.clientY + "px"
-    );
-  }, {passive:true});
+  Promise.all(preload).then(() => {
+    // Re-apply the first image once all images are decoded.
+    showSlide(0);
 
-  /* Tilt 3D molto leggero sulle card */
-  document.querySelectorAll(".game-card, .team-card, .info-card").forEach(function(card){
-
-    card.addEventListener("pointermove", function(event){
-      const rect = card.getBoundingClientRect();
-      const x = (event.clientX - rect.left) / rect.width - .5;
-      const y = (event.clientY - rect.top) / rect.height - .5;
-
-      card.style.transform =
-        "perspective(900px) rotateX(" + (-y * 3) + "deg) " +
-        "rotateY(" + (x * 3) + "deg) translateY(-6px)";
-    });
-
-    card.addEventListener("pointerleave", function(){
-      card.style.transform = "";
-    });
+    setInterval(() => {
+      showSlide(currentSlide + 1);
+    }, 5000);
   });
-
 });
 </script>
+
+
+
 
 
 <script>
